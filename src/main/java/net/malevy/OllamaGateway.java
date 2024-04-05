@@ -1,5 +1,6 @@
 package net.malevy;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,8 +42,8 @@ public class OllamaGateway {
         if (messages.isEmpty()) throw new IllegalArgumentException("must provide messages");
 
         ChatRequest request = new ChatRequest(this.settings.getChatModel(), messages);
-        ChatResponse response = this.restTemplate.postForObject(this.settings.getChatUri(), request, ChatResponse.class);
-        return response.message;
+        ResponseEntity<ChatResponse> response = this.restTemplate.postForEntity(this.settings.getChatUri(), request, ChatResponse.class);
+        return response.getBody().message;
     }
 
 
@@ -90,9 +91,11 @@ public class OllamaGateway {
         }
     }
 
-    static class ChatResponse {
-        private Message message;
-        private long totalDuration;
+    public static class ChatResponse {
+        public String model;
+        public Message message;
+        public String created_at;
+        public boolean done;
     }
 
 }

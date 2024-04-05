@@ -35,11 +35,14 @@ public class FaqRepository {
          * report for the Nomic Embeded model (https://static.nomic.ai/reports/2024_Nomic_Embed_Text_Technical_Report.pdf)
          * seems to indicate that Cosine Similarity was used during the model's training so I
          * use it here
+         *
+         * According to the PGVector documentation, the cosine similarity is calculated
+         * as 1 - (cosine distance)
          */
 
-        final String sql = "SELECT id, category, question, answer\n" +
+        final String sql = "SELECT id, category, question, answer, 1-(embedding <=> CAST(? AS vector)) AS cos\n" +
                 "FROM tefaqs\n" +
-                "ORDER BY embedding <=> CAST(? AS vector)\n" +
+                "ORDER BY cos DESC\n" +
                 "LIMIT ?";
 
         Object[] parms = new Object[] {embedding.toString(), cap};

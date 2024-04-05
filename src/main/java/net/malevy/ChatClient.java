@@ -1,6 +1,7 @@
 package net.malevy;
 
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Scanner;
@@ -42,7 +43,8 @@ public class ChatClient {
             final Message system = Message.asSystem(String.format(SYSTEM_MESSAGE_PROMPT_TEMPLATE, context));
             final Message user = Message.asUser(input);
             final Message response = ollamaGateway.submitChat(List.of(system, user));
-            System.out.println(response.getContent());
+            String fromModel = StringUtils.isEmpty(response.getContent()) ? "{ no response from the model }" : response.getContent();
+            System.out.println(fromModel);
 
         }
 
