@@ -1,13 +1,18 @@
 package net.malevy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Scanner;
 
+
 @Component
 public class ChatClient {
+
+    final static Logger LOGGER = LoggerFactory.getLogger(ChatClient.class);
 
     private static String SYSTEM_MESSAGE_PROMPT_TEMPLATE = "You are an assistant for question-answering tasks.\n" +
             "Given the following CONTEXT and a question, create a final answer.\n" +
@@ -17,18 +22,19 @@ public class ChatClient {
 
     private static String STOP_COMMAND = "/bye";
     private final FaqRepository faqRepository;
-    private final OllamaGateway ollamaGateway;
+    private final ModelApiGateway ollamaGateway;
 
     private final Scanner userInput = new Scanner(System.in);
 
 
-    public ChatClient(FaqRepository faqRepository, OllamaGateway ollamaGateway) {
+    public ChatClient(FaqRepository faqRepository, ModelApiGateway modelApiGateway) {
         this.faqRepository = faqRepository;
-        this.ollamaGateway = ollamaGateway;
+        this.ollamaGateway = modelApiGateway;
     }
 
     public void run() {
 
+        LOGGER.info("Starting chat client");
         displayIntro();
         while (true) {
             System.out.print("##> ");
@@ -47,6 +53,7 @@ public class ChatClient {
             System.out.println(fromModel);
 
         }
+        LOGGER.info("Stopping chat client");
 
     }
 

@@ -5,8 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.data.util.Lazy;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@ConfigurationProperties(prefix = "ollama")
-public class OllamaSettings {
+@ConfigurationProperties(prefix = "api")
+public class ModelApiSettings {
 
     private String host;
     private String embeddingPath;

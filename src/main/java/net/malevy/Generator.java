@@ -1,18 +1,19 @@
 package net.malevy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @Component
 public class Generator {
 
-    final static Logger LOGGER = Logger.getLogger(Generator.class.getName());
+    final static Logger LOGGER = LoggerFactory.getLogger(Generator.class.getName());
     private final FaqRepository faqRepository;
-    private final OllamaGateway modelGateway;
+    private final ModelApiGateway modelGateway;
 
-    public Generator(FaqRepository faqRepository, OllamaGateway modelGateway) {
+    public Generator(FaqRepository faqRepository, ModelApiGateway modelGateway) {
         this.faqRepository = faqRepository;
         this.modelGateway = modelGateway;
     }

@@ -1,28 +1,30 @@
 package net.malevy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Logger;
+
 
 @Service
-public class OllamaGateway {
+public class ModelApiGateway {
 
-    final static Logger LOGGER = Logger.getLogger(OllamaGateway.class.getName());
+    final static Logger LOGGER = LoggerFactory.getLogger(ModelApiGateway.class.getName());
 
     final RestTemplate restTemplate = new RestTemplate();
-    private final OllamaSettings settings;
+    private final ModelApiSettings settings;
 
-    public OllamaGateway(OllamaSettings settings) {
+    public ModelApiGateway(ModelApiSettings settings) {
         this.settings = settings;
     }
 
     public Embedding getEmbeddingFor(Faq faq) {
         Objects.requireNonNull(faq, "must provide an Faq instance");
-        LOGGER.info(String.format("creating embedding for FAQ %d", faq.id));
+        LOGGER.debug(String.format("creating embedding for FAQ %d", faq.id));
         return getEmbeddingFor(faq.toModelFriendlyString());
 
     }

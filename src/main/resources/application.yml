@@ -1,0 +1,50 @@
+server:
+  error:
+    include-stacktrace: never
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/RAG
+    name: rag
+    username: postgres
+    password: postgres1
+  profiles:
+    active: local-model
+
+logging:
+  file:
+    name: rag.log
+  level:
+    net.malevy: DEBUG
+    org.springframework: WARN
+    com.zaxxer: WARN
+  pattern:
+    console: # disable logging to console
+
+
+---
+spring:
+  config:
+    activate:
+      on-profile: openai
+
+api:
+  host: https://api.openai.com
+  embeddingPath: /v1/embeddings
+  chatPath: /v1/chat/completions
+  embeddingModel: text-embedding-3-small
+  chatModel: gpt-3.5-turbo
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local-model
+
+api:
+  host: http://localhost:11434
+  embeddingPath: /api/embeddings
+  chatPath: /api/chat
+  embeddingModel: nomic-embed-text
+  chatModel: gemma:7b
+
