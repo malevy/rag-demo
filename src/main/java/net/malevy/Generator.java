@@ -1,5 +1,9 @@
 package net.malevy;
 
+import net.malevy.ai.Embedding;
+import net.malevy.ai.ModelApiGateway;
+import net.malevy.faqs.Faq;
+import net.malevy.faqs.FaqRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

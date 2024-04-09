@@ -1,5 +1,7 @@
-package net.malevy;
+package net.malevy.faqs;
 
+import net.malevy.ai.Embedding;
+import net.malevy.faqs.Faq;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;

@@ -1,8 +1,8 @@
-package net.malevy;
+package net.malevy.ai;
 
 import java.util.Arrays;
 
-class Embedding {
+public class Embedding {
     public double[] embedding;
 
     public String type = "vector";

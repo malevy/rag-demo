@@ -1,4 +1,4 @@
-package net.malevy;
+package net.malevy.ai;
 
 
 import org.springframework.boot.context.properties.ConfigurationProperties;

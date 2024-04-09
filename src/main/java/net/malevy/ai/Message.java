@@ -1,4 +1,4 @@
-package net.malevy;
+package net.malevy.ai;
 
 public class Message {
     private String role;

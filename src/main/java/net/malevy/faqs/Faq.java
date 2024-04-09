@@ -1,4 +1,4 @@
-package net.malevy;
+package net.malevy.faqs;
 
 public class Faq {
     final int id;

@@ -1,5 +1,6 @@
-package net.malevy;
+package net.malevy.ai;
 
+import net.malevy.faqs.Faq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class ModelApiGateway {
 
     public Embedding getEmbeddingFor(Faq faq) {
         Objects.requireNonNull(faq, "must provide an Faq instance");
-        LOGGER.debug(String.format("creating embedding for FAQ %d", faq.id));
+        LOGGER.debug(String.format("creating embedding for FAQ %d", faq.getId()));
         return getEmbeddingFor(faq.toModelFriendlyString());
 
     }
