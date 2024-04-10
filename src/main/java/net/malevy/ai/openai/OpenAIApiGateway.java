@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -41,15 +42,23 @@ public class OpenAIApiGateway implements AIGateway {
         EmbeddingRequest payload = new EmbeddingRequest(
                 embeddingSettings.getModel(),
                 str);
-        ResponseEntity<EmbeddingResponse> response = this.restTemplate.exchange(
-                this.settings.getEmbeddingUri(),
-                HttpMethod.POST,
-                buildRequest(payload),
-                EmbeddingResponse.class);
+        LOGGER.debug("reqeust: {}", payload);
 
+        ResponseEntity<EmbeddingResponse> response = null;
+        try {
+            response = this.restTemplate.exchange(
+                    this.settings.getEmbeddingUri(),
+                    HttpMethod.POST,
+                    buildRequest(payload),
+                    EmbeddingResponse.class);
+        } catch (RestClientException e) {
+            LOGGER.error("failed to complete request", e);
+            AIGateway.handleException(e);
+        }
 
-        EmbeddingResponse body = response.getBody();
-        return body.data.get(0);
+        LOGGER.debug( "response: {}", response.getBody());
+
+        return !response.hasBody() ? null : response.getBody().data.get(0);
     }
 
     public Message submitChat(List<Message> messages) {
@@ -60,27 +69,27 @@ public class OpenAIApiGateway implements AIGateway {
         ChatRequest request = new ChatRequest(
                 chatSettings.getModel(),
                 messages);
-        ResponseEntity<ChatResponse> response = this.restTemplate.exchange(
-                this.settings.getChatUri(),
-                HttpMethod.POST,
-                buildRequest(request),
-                ChatResponse.class);
+        LOGGER.debug("reqeust: {}", request);
 
-        ChatResponse body = response.getBody();
-        if (body == null) return null;
+        ResponseEntity<ChatResponse> response = null;
+        try {
+            response = this.restTemplate.exchange(
+                    this.settings.getChatUri(),
+                    HttpMethod.POST,
+                    buildRequest(request),
+                    ChatResponse.class);
+        } catch (RestClientException e) {
+            LOGGER.error("failed to complete request", e);
+            AIGateway.handleException(e);
+        }
+        LOGGER.debug("response: {}", response.getBody());
 
-        if (body.choices == null || body.choices.length == 0) {
-            LOGGER.warn("no response returned from OpenAI");
-            return null;
-        };
-
-        return body.choices[0].message;
+        return !response.hasBody() ? null : response.getBody().choices[0].message;
     }
 
     private <T> HttpEntity<T> buildRequest(T payload) {
         Objects.requireNonNull(payload, "must provide a payload");
-        HttpEntity<T> request = new HttpEntity<>(payload, this.buildHeaders());
-        return request;
+        return new HttpEntity<>(payload, this.buildHeaders());
     }
 
     private MultiValueMap<String, String> buildHeaders() {

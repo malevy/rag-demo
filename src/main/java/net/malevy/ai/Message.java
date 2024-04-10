@@ -28,10 +28,28 @@ public class Message {
         this.content = content;
     }
 
+    @Override
+    public String toString() {
+        return "Message{" +
+                "role='" + role + '\'' +
+                ", content='" + content + '\'' +
+                '}';
+    }
+
+    /**
+     * Factory method to create a system message
+     * @param content - content of the message
+     * @return a system message
+     */
     public static Message asSystem(String content) {
         return new Message("system", content);
     }
 
+    /**
+     * Factory method to create a user message
+     * @param content - content of the message
+     * @return a user message
+     */
     public static Message asUser(String content) {
         return new Message("user", content);
     }

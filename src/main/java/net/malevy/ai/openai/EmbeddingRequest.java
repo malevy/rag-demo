@@ -19,4 +19,11 @@ class EmbeddingRequest {
         return input;
     }
 
+    @Override
+    public String toString() {
+        return "EmbeddingRequest{" +
+                "model='" + model + '\'' +
+                ", input='" + input + '\'' +
+                '}';
+    }
 }

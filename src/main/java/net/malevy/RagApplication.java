@@ -5,8 +5,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
-import java.util.logging.Logger;
-
 @SpringBootApplication
 @ConfigurationPropertiesScan
 public class RagApplication implements CommandLineRunner {
@@ -25,8 +23,8 @@ public class RagApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        this.generator.run();
-//        this.client.run();
+//        this.generator.run();
+        this.client.run();
 
 
     }

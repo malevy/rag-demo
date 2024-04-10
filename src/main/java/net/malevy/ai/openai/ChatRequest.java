@@ -9,9 +9,6 @@ class ChatRequest {
     private String model;
     private List<Message> messages;
 
-    @JsonProperty("response_format")
-    public final String format = "json";
-
     public ChatRequest(String model, List<Message> messages) {
         this.model = model;
         this.messages = messages;
@@ -23,5 +20,13 @@ class ChatRequest {
 
     public List<Message> getMessages() {
         return messages;
+    }
+
+    @Override
+    public String toString() {
+        return "ChatRequest{" +
+                "model='" + model + '\'' +
+                ", messages=" + messages +
+                '}';
     }
 }

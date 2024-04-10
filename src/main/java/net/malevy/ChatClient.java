@@ -1,9 +1,9 @@
 package net.malevy;
 
 import net.malevy.ai.AIGateway;
+import net.malevy.ai.AiException;
 import net.malevy.ai.Embedding;
 import net.malevy.ai.Message;
-import net.malevy.ai.openai.OpenAIApiGateway;
 import net.malevy.faqs.Faq;
 import net.malevy.faqs.FaqRepository;
 import org.slf4j.Logger;
@@ -20,22 +20,23 @@ public class ChatClient {
 
     final static Logger LOGGER = LoggerFactory.getLogger(ChatClient.class);
 
-    private static String SYSTEM_MESSAGE_PROMPT_TEMPLATE = "You are an assistant for question-answering tasks.\n" +
+    private static String SYSTEM_MESSAGE_PROMPT_TEMPLATE =
+            "You are an assistant for question-answering tasks.\n" +
             "Given the following CONTEXT and a question, create a final answer.\n" +
-            "If you don't know the answer, just say that you don't know.\n" +
-            "Don't try to make up an answer.\n" +
-            "<CONTEXT>\n%s\n</CONTEXT>";
+            "Keep the style friendly but business appropriate.\n" +
+            "If you don't know the answer, just say 'I do not know the answer to that question'. Don't try to make up an answer.\n" +
+            "### CONTEXT ###\n%s";
 
-    private static String STOP_COMMAND = "/bye";
+    private final static String STOP_COMMAND = "/bye";
+
     private final FaqRepository faqRepository;
-    private final AIGateway ollamaGateway;
+    private final AIGateway aiGateway;
 
     private final Scanner userInput = new Scanner(System.in);
 
-
-    public ChatClient(FaqRepository faqRepository, AIGateway modelApiGateway) {
+    public ChatClient(FaqRepository faqRepository, AIGateway aiGateway) {
         this.faqRepository = faqRepository;
-        this.ollamaGateway = modelApiGateway;
+        this.aiGateway = aiGateway;
     }
 
     public void run() {
@@ -49,18 +50,22 @@ public class ChatClient {
             if (isExitCommand(input)) break;
             input = scrub(input);
 
-            final Embedding inputEmbedding = ollamaGateway.getEmbeddingFor(input);
-            List<Faq> faqs = faqRepository.findSimilar(inputEmbedding, 7);
+            final Embedding inputEmbedding = aiGateway.getEmbeddingFor(input);
+            final List<Faq> faqs = faqRepository.findSimilar(inputEmbedding, 7);
             final String context = buildPromptContext(faqs);
             final Message system = Message.asSystem(String.format(SYSTEM_MESSAGE_PROMPT_TEMPLATE, context));
             final Message user = Message.asUser(input);
-            final Message response = ollamaGateway.submitChat(List.of(system, user));
-            String fromModel = StringUtils.isEmpty(response.getContent()) ? "{ no response from the model }" : response.getContent();
+            final Message response;
+            String fromModel;
+            try {
+                response = aiGateway.submitChat(List.of(system, user));
+                fromModel = response == null || StringUtils.isEmpty(response.getContent()) ? "Sorry. I have no answer." : response.getContent();
+            } catch (AiException e) {
+                fromModel = String.format("{ answer unavailable: %s }", e.getMessage());
+            }
             System.out.println(fromModel);
-
         }
         LOGGER.info("Stopping chat client");
-
     }
 
     private String buildPromptContext(List<Faq> faqs) {
