@@ -21,6 +21,9 @@ SELECT TRIM(category), TRIM(question), TRIM(answer)
 FROM loading.tefaqs;
 
 select * from tefaqs;
+
+alter table tefaqs
+	alter column embedding type vector(1536);
 */
 
 

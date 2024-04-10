@@ -25,8 +25,8 @@ public class RagApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-//        this.generator.run();
-        this.client.run();
+        this.generator.run();
+//        this.client.run();
 
 
     }

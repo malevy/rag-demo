@@ -9,7 +9,7 @@ spring:
     username: postgres
     password: postgres1
   profiles:
-    active: local-model
+    active: openai
 
 logging:
   file:
@@ -21,30 +21,31 @@ logging:
   pattern:
     console: # disable logging to console
 
-
 ---
 spring:
-  config:
-    activate:
-      on-profile: openai
+  profiles: openai
 
 api:
   host: https://api.openai.com
-  embeddingPath: /v1/embeddings
-  chatPath: /v1/chat/completions
-  embeddingModel: text-embedding-3-small
-  chatModel: gpt-3.5-turbo
+  headers:
+    Authorization: "Bearer ${OPENAI_API_KEY}" # API key from env.
+  embeddings:
+    path: /v1/embeddings
+    model: text-embedding-3-small
+  chat:
+    path: /v1/chat/completions
+    model: gpt-3.5-turbo
 
 ---
 spring:
-  config:
-    activate:
-      on-profile: local-model
+  profiles: local-model
 
 api:
   host: http://localhost:11434
-  embeddingPath: /api/embeddings
-  chatPath: /api/chat
-  embeddingModel: nomic-embed-text
-  chatModel: gemma:7b
-
+  embeddings:
+    path: /api/embeddings
+    model: nomic-embed-text
+  chat:
+    path: /api/chat
+    model: gemma:7b
+---

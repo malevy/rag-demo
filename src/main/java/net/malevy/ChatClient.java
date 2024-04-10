@@ -1,8 +1,9 @@
 package net.malevy;
 
+import net.malevy.ai.AIGateway;
 import net.malevy.ai.Embedding;
 import net.malevy.ai.Message;
-import net.malevy.ai.ModelApiGateway;
+import net.malevy.ai.openai.OpenAIApiGateway;
 import net.malevy.faqs.Faq;
 import net.malevy.faqs.FaqRepository;
 import org.slf4j.Logger;
@@ -27,12 +28,12 @@ public class ChatClient {
 
     private static String STOP_COMMAND = "/bye";
     private final FaqRepository faqRepository;
-    private final ModelApiGateway ollamaGateway;
+    private final AIGateway ollamaGateway;
 
     private final Scanner userInput = new Scanner(System.in);
 
 
-    public ChatClient(FaqRepository faqRepository, ModelApiGateway modelApiGateway) {
+    public ChatClient(FaqRepository faqRepository, AIGateway modelApiGateway) {
         this.faqRepository = faqRepository;
         this.ollamaGateway = modelApiGateway;
     }
