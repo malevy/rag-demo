@@ -17,15 +17,17 @@ public class Generator {
     final static Logger LOGGER = LoggerFactory.getLogger(Generator.class.getName());
     private final FaqRepository faqRepository;
     private final AIGateway modelGateway;
+    private final RagSettings settings;
 
-    public Generator(FaqRepository faqRepository, AIGateway modelGateway) {
+    public Generator(FaqRepository faqRepository, AIGateway modelGateway, RagSettings settings) {
         this.faqRepository = faqRepository;
         this.modelGateway = modelGateway;
+        this.settings = settings;
     }
 
     public void run() {
 
-        final int pageSize = 20;
+        final int pageSize = this.settings.getGenerator().getBatchSize();
         int page = 0;
         while (true) {
             List<Faq> faqs = this.faqRepository.getFaqs(page, pageSize);

@@ -21,6 +21,12 @@ logging:
   pattern:
     console: # disable logging to console
 
+rag:
+  chat:
+    topk: 7
+  generator:
+    batchSize: 20
+
 ---
 spring:
   profiles: openai

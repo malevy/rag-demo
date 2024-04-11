@@ -31,12 +31,14 @@ public class ChatClient {
 
     private final FaqRepository faqRepository;
     private final AIGateway aiGateway;
+    private final RagSettings settings;
 
     private final Scanner userInput = new Scanner(System.in);
 
-    public ChatClient(FaqRepository faqRepository, AIGateway aiGateway) {
+    public ChatClient(FaqRepository faqRepository, AIGateway aiGateway, RagSettings settings) {
         this.faqRepository = faqRepository;
         this.aiGateway = aiGateway;
+        this.settings = settings;
     }
 
     public void run() {
@@ -51,7 +53,7 @@ public class ChatClient {
             input = scrub(input);
 
             final Embedding inputEmbedding = aiGateway.getEmbeddingFor(input);
-            final List<Faq> faqs = faqRepository.findSimilar(inputEmbedding, 7);
+            final List<Faq> faqs = faqRepository.findSimilar(inputEmbedding, settings.getChat().getTopk());
             final String context = buildPromptContext(faqs);
             final Message system = Message.asSystem(String.format(SYSTEM_MESSAGE_PROMPT_TEMPLATE, context));
             final Message user = Message.asUser(input);
