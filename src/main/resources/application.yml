@@ -24,6 +24,8 @@ logging:
 rag:
   chat:
     topk: 7
+    expansionCount: 3
+    similarityThreshold: 0.4
   generator:
     batchSize: 20
 

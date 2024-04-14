@@ -1,9 +1,6 @@
 package net.malevy;
 
-import net.malevy.ai.AIGateway;
-import net.malevy.ai.AiException;
-import net.malevy.ai.Embedding;
-import net.malevy.ai.Message;
+import net.malevy.ai.*;
 import net.malevy.faqs.Faq;
 import net.malevy.faqs.FaqRepository;
 import org.slf4j.Logger;
@@ -11,8 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 
 @Component
@@ -22,10 +18,10 @@ public class ChatClient {
 
     private static String SYSTEM_MESSAGE_PROMPT_TEMPLATE =
             "You are an assistant for question-answering tasks.\n" +
-            "Given the following CONTEXT and a question, create a final answer.\n" +
-            "Keep the style friendly but business appropriate.\n" +
-            "If you don't know the answer, just say 'I do not know the answer to that question'. Don't try to make up an answer.\n" +
-            "### CONTEXT ###\n%s";
+                    "Given the following CONTEXT and a question, create a final answer.\n" +
+                    "If you don't know the answer, just say 'I do not know the answer to that question'. Don't try to make up an answer.\n" +
+                    "Keep the style friendly but business appropriate.\n" +
+                    "### CONTEXT ###\n%s";
 
     private final static String STOP_COMMAND = "/bye";
 
@@ -42,8 +38,8 @@ public class ChatClient {
     }
 
     public void run() {
-
         LOGGER.info("Starting chat client");
+
         displayIntro();
         while (true) {
             System.out.print("##> ");
@@ -52,15 +48,14 @@ public class ChatClient {
             if (isExitCommand(input)) break;
             input = scrub(input);
 
-            final Embedding inputEmbedding = aiGateway.getEmbeddingFor(input);
-            final List<Faq> faqs = faqRepository.findSimilar(inputEmbedding, settings.getChat().getTopk());
+            final List<String> questions = expandQuestion(input);
+            final Set<Faq> faqs = getApplicableFaqs(questions);
             final String context = buildPromptContext(faqs);
             final Message system = Message.asSystem(String.format(SYSTEM_MESSAGE_PROMPT_TEMPLATE, context));
             final Message user = Message.asUser(input);
-            final Message response;
             String fromModel;
             try {
-                response = aiGateway.submitChat(List.of(system, user));
+                final Message response = aiGateway.submitChat(List.of(system, user));
                 fromModel = response == null || StringUtils.isEmpty(response.getContent()) ? "Sorry. I have no answer." : response.getContent();
             } catch (AiException e) {
                 fromModel = String.format("{ answer unavailable: %s }", e.getMessage());
@@ -70,9 +65,22 @@ public class ChatClient {
         LOGGER.info("Stopping chat client");
     }
 
-    private String buildPromptContext(List<Faq> faqs) {
+    private Set<Faq> getApplicableFaqs(List<String> questions) {
+        final Set<Faq> faqs = new HashSet<>();
+        RagSettings.ChatSettings chatSettings = settings.getChat();
+        for (String question : questions) {
+            final Embedding inputEmbedding = aiGateway.getEmbeddingFor(question);
+            final List<Faq> similarFaqs = faqRepository.findSimilar(inputEmbedding,
+                    chatSettings.getTopk(),
+                    chatSettings.getSimilarityThreshold());
+            faqs.addAll(similarFaqs);
+        }
+        return faqs;
+    }
+
+    private String buildPromptContext(Collection<Faq> faqs) {
         final StringBuilder sb = new StringBuilder();
-        for(Faq faq : faqs) {
+        for (Faq faq : faqs) {
             sb.append(faq.toModelFriendlyString());
             sb.append("\n\n");
         }
@@ -96,6 +104,35 @@ public class ChatClient {
 
     private boolean isExitCommand(String input) {
         return input.equalsIgnoreCase(STOP_COMMAND);
+    }
+
+    private List<String> expandQuestion(String question) {
+        final String prompt = "Generate %d different versions or rephrasings of the following question." +
+                "Put each question on a new line without any leading characters like hyphens or numbers.";
+        final Message system = Message.asSystem(String.format(prompt, settings.getChat().getExpansionCount()));
+        final Message user = Message.asUser("question:" + question);
+        List<String> questions = new ArrayList<>();
+
+        try {
+            final Message response = aiGateway.submitChat(List.of(system, user));
+            if (response != null && !StringUtils.isEmpty(response.getContent())) {
+                final String fromModel = response.getContent();
+                for(String newQ : fromModel.split("\n")) {
+                    if (!StringUtils.isEmpty(newQ)) {
+                        questions.add(newQ);
+                    }
+                }
+            }
+        } catch (AiException e) {
+            LOGGER.error("could not expand question", e);
+        }
+
+        if (questions.isEmpty()) {
+            questions.add(question);
+        }
+
+        LOGGER.debug("expanded questions: {}", questions);
+        return questions;
     }
 
 }

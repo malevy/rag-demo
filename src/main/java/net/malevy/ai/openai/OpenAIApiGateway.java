@@ -42,7 +42,7 @@ public class OpenAIApiGateway implements AIGateway {
         EmbeddingRequest payload = new EmbeddingRequest(
                 embeddingSettings.getModel(),
                 str);
-        LOGGER.debug("reqeust: {}", payload);
+        LOGGER.debug("request: {}", payload);
 
         ResponseEntity<EmbeddingResponse> response = null;
         try {
@@ -69,7 +69,7 @@ public class OpenAIApiGateway implements AIGateway {
         ChatRequest request = new ChatRequest(
                 chatSettings.getModel(),
                 messages);
-        LOGGER.debug("reqeust: {}", request);
+        LOGGER.debug("request: {}", request);
 
         ResponseEntity<ChatResponse> response = null;
         try {

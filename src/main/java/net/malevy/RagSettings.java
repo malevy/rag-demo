@@ -28,6 +28,8 @@ public class RagSettings {
 
     public static class ChatSettings {
         private int topk;
+        private int expansionCount;
+        private double similarityThreshold;
 
         public int getTopk() {
             return topk;
@@ -35,6 +37,22 @@ public class RagSettings {
 
         public void setTopk(int topk) {
             this.topk = topk;
+        }
+
+        public int getExpansionCount() {
+            return expansionCount;
+        }
+
+        public void setExpansionCount(int expansionCount) {
+            this.expansionCount = expansionCount;
+        }
+
+        public double getSimilarityThreshold() {
+            return similarityThreshold;
+        }
+
+        public void setSimilarityThreshold(double similarityThreshold) {
+            this.similarityThreshold = similarityThreshold;
         }
     }
 

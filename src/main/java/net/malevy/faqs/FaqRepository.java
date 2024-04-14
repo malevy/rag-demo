@@ -30,7 +30,7 @@ public class FaqRepository {
         return this.jdbcTemplate.query(sql, new FaqMapper(), page*pagesize, pagesize);
     }
 
-    public List<Faq> findSimilar(Embedding embedding, int cap) {
+    public List<Faq> findSimilar(Embedding embedding, int cap, double threshold) {
         /**
          * the article https://www.pinecone.io/learn/vector-similarity/ recommends using the same
          * vector similarity when comparing vectors as was used to train the model. The technical
@@ -42,12 +42,17 @@ public class FaqRepository {
          * as 1 - (cosine distance)
          */
 
-        final String sql = "SELECT id, category, question, answer, 1-(embedding <=> CAST(? AS vector)) AS cos\n" +
-                "FROM tefaqs\n" +
+        final String sql =
+                "SELECT id, category, question, answer, cos\n" +
+                "FROM (\n" +
+                "\tSELECT id, category, question, answer, 1-(embedding <=> CAST(? AS vector)) AS cos\n" +
+                "\tFROM tefaqs\n" +
+                "\t) AS faqs\n" +
+                "WHERE cos > ?\n" +
                 "ORDER BY cos DESC\n" +
-                "LIMIT ?";
+                "LIMIT ?;";
 
-        Object[] parms = new Object[] {embedding.toString(), cap};
+        Object[] parms = new Object[] {embedding.toString(), threshold, cap};
         return this.jdbcTemplate.query(sql, new FaqMapper(), parms);
     }
 

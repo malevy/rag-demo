@@ -24,6 +24,15 @@ select * from tefaqs;
 
 alter table tefaqs
 	alter column embedding type vector(1536);
+
+SELECT id, category, question, answer, cos
+FROM (
+    SELECT id, category, question, answer, 1-(embedding <=> CAST(? AS vector)) AS cos
+    FROM tefaqs
+    )
+WHERE cos > 0.7
+ORDER BY cos DESC
+LIMIT ?;
 */
 
 
