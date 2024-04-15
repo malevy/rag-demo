@@ -13,7 +13,15 @@ CREATE TABLE tefaqs (
 	category VARCHAR(40) NOT NULL,
 	question VARCHAR(1024) NOT NULL,
 	answer TEXT NOT NULL,
-	embedding VECTOR(768) NULL
+);
+
+CREATE TABLE faq_embeddings (
+    id SERIAL PRIMARY KEY,
+    faq_id INT NOT NULL UNIQUE,
+    content TEXT NOT NULL,
+    embedding VECTOR(1536) NOT NULL,
+
+    CONSTRAINT faq FOREIGN KEY (faq_id) REFERENCES tefaqs(id)
 );
 
 INSERT INTO tefaqs (category, question, answer)
@@ -25,14 +33,6 @@ select * from tefaqs;
 alter table tefaqs
 	alter column embedding type vector(1536);
 
-SELECT id, category, question, answer, cos
-FROM (
-    SELECT id, category, question, answer, 1-(embedding <=> CAST(? AS vector)) AS cos
-    FROM tefaqs
-    )
-WHERE cos > 0.7
-ORDER BY cos DESC
-LIMIT ?;
 */
 
 

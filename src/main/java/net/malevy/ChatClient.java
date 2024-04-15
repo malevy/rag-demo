@@ -1,7 +1,10 @@
 package net.malevy;
 
-import net.malevy.ai.*;
-import net.malevy.faqs.Faq;
+import net.malevy.ai.AIGateway;
+import net.malevy.ai.AiException;
+import net.malevy.ai.Embedding;
+import net.malevy.ai.Message;
+import net.malevy.faqs.Chunk;
 import net.malevy.faqs.FaqRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +22,7 @@ public class ChatClient {
     private static String SYSTEM_MESSAGE_PROMPT_TEMPLATE =
             "You are an assistant for question-answering tasks.\n" +
                     "Given the following CONTEXT and a question, create a final answer.\n" +
+                    "if you don't understand the question, ask a clarifying question.\n" +
                     "If you don't know the answer, just say 'I do not know the answer to that question'. Don't try to make up an answer.\n" +
                     "Keep the style friendly but business appropriate.\n" +
                     "### CONTEXT ###\n%s";
@@ -49,8 +53,8 @@ public class ChatClient {
             input = scrub(input);
 
             final List<String> questions = expandQuestion(input);
-            final Set<Faq> faqs = getApplicableFaqs(questions);
-            final String context = buildPromptContext(faqs);
+            final Set<Chunk> chunks = getApplicableFaqs(questions);
+            final String context = buildPromptContext(chunks);
             final Message system = Message.asSystem(String.format(SYSTEM_MESSAGE_PROMPT_TEMPLATE, context));
             final Message user = Message.asUser(input);
             String fromModel;
@@ -65,12 +69,12 @@ public class ChatClient {
         LOGGER.info("Stopping chat client");
     }
 
-    private Set<Faq> getApplicableFaqs(List<String> questions) {
-        final Set<Faq> faqs = new HashSet<>();
+    private Set<Chunk> getApplicableFaqs(List<String> questions) {
+        final Set<Chunk> faqs = new HashSet<>();
         RagSettings.ChatSettings chatSettings = settings.getChat();
         for (String question : questions) {
             final Embedding inputEmbedding = aiGateway.getEmbeddingFor(question);
-            final List<Faq> similarFaqs = faqRepository.findSimilar(inputEmbedding,
+            final List<Chunk> similarFaqs = faqRepository.findSimilar(inputEmbedding,
                     chatSettings.getTopk(),
                     chatSettings.getSimilarityThreshold());
             faqs.addAll(similarFaqs);
@@ -78,10 +82,10 @@ public class ChatClient {
         return faqs;
     }
 
-    private String buildPromptContext(Collection<Faq> faqs) {
+    private String buildPromptContext(Collection<Chunk> chunks) {
         final StringBuilder sb = new StringBuilder();
-        for (Faq faq : faqs) {
-            sb.append(faq.toModelFriendlyString());
+        for (Chunk chunk : chunks) {
+            sb.append(chunk.content);
             sb.append("\n\n");
         }
 

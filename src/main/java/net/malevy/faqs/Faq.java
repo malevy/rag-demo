@@ -31,19 +31,6 @@ public class Faq {
         return answer;
     }
 
-    public String toModelFriendlyString() {
-        final String template = "CATEGORY:%s\nQUESTION:%s\nANSWER:%s";
-        return String.format(template,
-                scrub(this.category),
-                scrub(this.question),
-                scrub(this.answer)
-        );
-    }
-
-    private String scrub(String s) {
-        // remove any CRs
-        return s.replace("\r", "");
-    }
 
     @Override
     public boolean equals(Object o) {
