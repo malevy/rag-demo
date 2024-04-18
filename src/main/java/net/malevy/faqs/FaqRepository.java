@@ -1,6 +1,7 @@
 package net.malevy.faqs;
 
 import net.malevy.ai.Embedding;
+import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -61,11 +62,20 @@ public class FaqRepository {
         return this.jdbcTemplate.query(sql, mapper, parms);
     }
 
+    public List<Embedding> getEmbeddings() {
+        final String sql= "SELECT embedding FROM faq_embeddings";
+        RowMapper<Embedding> mapper = (rs, rowNum) -> {
+            PGobject obj = (PGobject) rs.getObject("embedding");
+            return new Embedding(obj.getValue());
+        };
+        return this.jdbcTemplate.query(sql, mapper);
+    }
+
     public void writeEmbedding(Faq faq, String content, Embedding embedding) {
         final String sql = "INSERT INTO faq_embeddings (faq_id, content, embedding)\n" +
                 "VALUES (?, ?, ?)\n" +
                 "ON CONFLICT (faq_id) DO UPDATE SET content = EXCLUDED.content, embedding = EXCLUDED.embedding;\n";
-        this.jdbcTemplate.update(sql, faq.id, content, embedding.embedding);
+        this.jdbcTemplate.update(sql, faq.id, content, embedding.vector);
     }
 
     static class FaqMapper implements RowMapper<Faq> {
