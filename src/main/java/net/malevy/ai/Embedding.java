@@ -1,5 +1,6 @@
 package net.malevy.ai;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.postgresql.util.PGobject;
 
 import java.io.Serializable;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 
 public class Embedding extends PGobject implements Serializable, Cloneable {
 
+    @JsonProperty("embedding")
     public float[] vector;
 
     public Embedding() {
