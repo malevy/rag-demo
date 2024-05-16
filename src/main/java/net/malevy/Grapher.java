@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import tagbio.umap.Umap;
 
 import javax.swing.*;
+import java.util.Arrays;
 import java.util.List;
 
 @Component
@@ -24,9 +25,6 @@ public class Grapher {
     private final FaqRepository faqRepository;
     private final AIGateway aiGateway;
 
-    private float[] generalEmbedX = null;
-    private float[] generalEmbedY = null;
-
     public Grapher(FaqRepository faqRepository, AIGateway aiGateway) {
         this.faqRepository = faqRepository;
         this.aiGateway = aiGateway;
@@ -34,14 +32,29 @@ public class Grapher {
 
     public void generate(String input) {
 
-        if (generalEmbedX == null) {
-            processGeneralEmbeddings();
+        final List<Embedding> faqEmbeddings = faqRepository.getEmbeddings();
+        final float[][] data = new float[faqEmbeddings.size()+1][];
+        for (int i = 0; i < faqEmbeddings.size(); i++) {
+            data[i] = faqEmbeddings.get(i).vector;
         }
 
-        Embedding embedding = this.aiGateway.getEmbeddingFor(input);
-        float[][] vector = new float[1][];
-        vector[0] = embedding.vector;
-        float[][] reducedInputEmbedding = this.reducedEmbeddings(vector);
+        // tack the embedding for the question to the end. all of the embeddings
+        // have to be reduced as a group.
+        Embedding inputEmbedding = this.aiGateway.getEmbeddingFor(input);
+        data[data.length-1] = inputEmbedding.vector;
+
+        final float[][] reducedEmbeddings = this.reducedEmbeddings(data);
+
+        final float[] allX = new float[reducedEmbeddings.length-1];
+        final float[] allY = new float[reducedEmbeddings.length-1];
+
+        for(int i=0;i<allX.length;i++) {
+            allX[i] = reducedEmbeddings[i][0];
+            allY[i] = reducedEmbeddings[i][1];
+        }
+
+        final float[] inputX = new float[]{reducedEmbeddings[reducedEmbeddings.length-1][0]};
+        final float[] inputY = new float[]{reducedEmbeddings[reducedEmbeddings.length-1][1]};
 
         XYChart chart = new XYChartBuilder()
                 .width(800)
@@ -53,33 +66,9 @@ public class Grapher {
                 .setDefaultSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter)
                 .setMarkerSize(10);
 
-        chart.addSeries("All Embeddings", this.generalEmbedX, this.generalEmbedY);
-        float[] xSeries = new float[]{reducedInputEmbedding[0][0]};
-        float[] ySeries = new float[]{reducedInputEmbedding[0][1]};
-        chart.addSeries("input", xSeries, ySeries);
+        chart.addSeries("All Embeddings", allX, allY);
+        chart.addSeries("input", inputX, inputY);
         JFrame frame = new SwingWrapper<>(chart).displayChart();
-    }
-
-    private void processGeneralEmbeddings() {
-
-        LOGGER.info("first time processing of all embeddings");
-
-        final List<Embedding> embeddings = faqRepository.getEmbeddings();
-        LOGGER.debug("fetched {} embeddings", embeddings.size());
-        final float[][] data = new float[embeddings.size()][];
-        for (int i = 0; i < embeddings.size(); i++) {
-            data[i] = embeddings.get(i).vector;
-        }
-        float[][] reducedEmbeddings = reducedEmbeddings(data);
-
-        this.generalEmbedX = new float[reducedEmbeddings.length];
-        this.generalEmbedY = new float[reducedEmbeddings.length];
-
-        for (int i = 0; i < reducedEmbeddings.length; i++) {
-            this.generalEmbedX[i] = reducedEmbeddings[i][0];
-            this.generalEmbedY[i] = reducedEmbeddings[i][1];
-        }
-
     }
 
     private float[][] reducedEmbeddings(float[][] data) {
